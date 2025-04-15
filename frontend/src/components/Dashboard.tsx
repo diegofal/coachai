@@ -4,14 +4,59 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/Dashboard.css';
 
-const Dashboard = () => {
-  const { user, isAuthenticated, loading } = useContext(AuthContext);
-  const [courses, setCourses] = useState([]);
-  const [modules, setModules] = useState([]);
-  const [subscription, setSubscription] = useState(null);
-  const [progress, setProgress] = useState(null);
+interface Module {
+  _id: string;
+  title: string;
+  description: string;
+  sections: Section[];
+}
+
+interface Section {
+  _id: string;
+  title: string;
+}
+
+interface Course {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  level: string;
+  modules: Module[];
+}
+
+interface Subscription {
+  _id: string;
+  userId: string;
+  courseLevel: string;
+  status: 'active' | 'inactive';
+}
+
+interface Progress {
+  moduleId: string;
+  completed: boolean;
+  completionDate?: Date;
+}
+
+interface User {
+  id: string;
+  name: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+}
+
+const Dashboard: React.FC = () => {
+  const { user, isAuthenticated, loading } = useContext(AuthContext) as AuthContextType;
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [progress, setProgress] = useState<Progress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,32 +65,36 @@ const Dashboard = () => {
       try {
         setIsLoading(true);
         
-        // Obtener cursos
-        const coursesRes = await axios.get('/courses');
+        // Fetch courses
+        const coursesRes = await axios.get<Course[]>('/courses');
         setCourses(coursesRes.data);
         
-        // Obtener suscripción del usuario
-        const subscriptionRes = await axios.get(`/subscriptions/user/${user.id}`);
+        // Fetch user's subscription
+        const subscriptionRes = await axios.get<Subscription[]>(`/subscriptions/user/${user?.id}`);
         if (subscriptionRes.data.length > 0) {
           setSubscription(subscriptionRes.data[0]);
           
-          // Obtener módulos del curso suscrito
+          // Fetch modules for the subscribed course
           const courseLevel = subscriptionRes.data[0].courseLevel;
           const course = coursesRes.data.find(c => c.level === courseLevel);
           
           if (course) {
-            const courseRes = await axios.get(`/courses/${course._id}`);
+            const courseRes = await axios.get<Course>(`/courses/${course._id}`);
             setModules(courseRes.data.modules);
           }
           
-          // Obtener progreso del usuario
-          const progressRes = await axios.get(`/progress/user/${user.id}`);
+          // Fetch user's progress
+          const progressRes = await axios.get<Progress[]>(`/progress/user/${user?.id}`);
           setProgress(progressRes.data);
         }
         
         setIsLoading(false);
       } catch (err) {
-        setError(err.response?.data?.message || 'Error al cargar los datos');
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.message || 'Error al cargar los datos');
+        } else {
+          setError('Error al cargar los datos');
+        }
         setIsLoading(false);
       }
     };
@@ -53,8 +102,7 @@ const Dashboard = () => {
     fetchData();
   }, [isAuthenticated, loading, user]);
 
-  // Calcular progreso general
-  const calculateOverallProgress = () => {
+  const calculateOverallProgress = (): number => {
     if (!progress || !modules || modules.length === 0) return 0;
     
     const completedSections = progress.filter(p => p.completed).length;
@@ -63,8 +111,7 @@ const Dashboard = () => {
     return totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
   };
 
-  // Calcular progreso por módulo
-  const calculateModuleProgress = (moduleId) => {
+  const calculateModuleProgress = (moduleId: string): number => {
     if (!progress) return 0;
     
     const moduleSections = progress.filter(p => p.moduleId === moduleId);
@@ -173,7 +220,7 @@ const Dashboard = () => {
             <ul className="activity-list">
               {progress
                 .filter(p => p.completed)
-                .sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate))
+                .sort((a, b) => new Date(b.completionDate || 0).getTime() - new Date(a.completionDate || 0).getTime())
                 .slice(0, 5)
                 .map((p, index) => (
                   <li key={index} className="activity-item">
@@ -181,7 +228,7 @@ const Dashboard = () => {
                     <div className="activity-details">
                       <p>Completaste una sección</p>
                       <span className="activity-date">
-                        {new Date(p.completionDate).toLocaleDateString()}
+                        {p.completionDate ? new Date(p.completionDate).toLocaleDateString() : ''}
                       </span>
                     </div>
                   </li>
@@ -217,4 +264,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Dashboard; 

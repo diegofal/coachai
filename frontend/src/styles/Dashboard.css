@@ -1,0 +1,267 @@
+/* Dashboard Container */
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+}
+
+/* Loading State */
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.dashboard-error {
+  text-align: center;
+  padding: 2rem;
+}
+
+.dashboard-error h2 {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+}
+
+/* No Subscription State */
+.dashboard-no-subscription {
+  text-align: center;
+  padding: 2rem;
+}
+
+.subscription-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.subscription-card {
+  background: white;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: var(--shadow);
+}
+
+/* Dashboard Header */
+.dashboard-header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.welcome-section h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Progress Overview */
+.progress-overview {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.circular-chart {
+  width: 100px;
+  height: 100px;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: #eee;
+  stroke-width: 3;
+}
+
+.circle {
+  fill: none;
+  stroke: var(--accent-color);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s ease;
+}
+
+.percentage {
+  fill: var(--accent-color);
+  font-size: 0.5em;
+  text-anchor: middle;
+  font-weight: bold;
+}
+
+.progress-info {
+  flex-grow: 1;
+}
+
+.progress-info h3 {
+  margin-bottom: 0.5rem;
+}
+
+/* Modules Grid */
+.dashboard-content {
+  grid-column: 1;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.module-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.module-header h3 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.module-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-bar {
+  width: 100px;
+  height: 6px;
+  background: #eee;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-color);
+  transition: width 0.3s ease;
+}
+
+/* Sidebar */
+.dashboard-sidebar {
+  grid-column: 2;
+}
+
+.recent-activity,
+.resources-section {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.5rem;
+}
+
+.activity-list {
+  list-style: none;
+  padding: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.activity-details p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.activity-date {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.resources-list {
+  list-style: none;
+  padding: 0;
+}
+
+.resources-list li {
+  margin-bottom: 1rem;
+}
+
+.resources-list a {
+  color: var(--accent-color);
+  text-decoration: none;
+  display: block;
+  padding: 0.5rem;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.resources-list a:hover {
+  background-color: #f5f5f5;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .dashboard-container {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-sidebar {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .progress-overview {
+    flex-direction: column;
+  }
+} 
