@@ -68,55 +68,64 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Ruta para login
+// Login route
 router.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    
-    // Buscar usuario
-    const user = await User.findOne({ username });
-    
+    const { email, password } = req.body;
+
+    // Find user by email
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ 
-        message: 'Credenciales inválidas' 
-      });
+      return res.status(401).json({ message: 'Credenciales inválidas' });
     }
-    
-    // Verificar contraseña
+
+    // Check password
     const isMatch = await user.comparePassword(password);
-    
     if (!isMatch) {
-      return res.status(401).json({ 
-        message: 'Credenciales inválidas' 
-      });
+      return res.status(401).json({ message: 'Credenciales inválidas' });
     }
-    
-    // Actualizar último login
-    user.lastLogin = Date.now();
-    await user.save();
-    
-    // Generar token
+
+    // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id }, 
-      process.env.JWT_SECRET, 
-      { expiresIn: '7d' }
+      { userId: user._id },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
     );
-    
+
+    // Return user data and token
     res.json({
       token,
       user: {
         id: user._id,
         name: user.name,
-        username: user.username,
-        email: user.email,
-        role: user.role
+        email: user.email
       }
     });
   } catch (error) {
-    res.status(500).json({ 
-      message: 'Error al iniciar sesión', 
-      error: error.message 
-    });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+});
+
+// Get current user
+router.get('/me', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'No autorizado' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const user = await User.findById(decoded.userId).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(401).json({ message: 'Token inválido' });
   }
 });
 

@@ -5,6 +5,9 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
+// Import routes
+const authRoutes = require('./routes/auth');
+
 // Crear la aplicación Express
 const app = express();
 
@@ -16,6 +19,18 @@ app.use(express.urlencoded({ extended: true }));
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
+// API Routes
+app.use('/api/auth', authRoutes);
+
+// Health check route
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Servidor funcionando correctamente',
+    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
+
 // Verificar si existe el archivo con la URI de MongoDB Memory Server
 let mongodbUri = process.env.MONGODB_URI;
 if (fs.existsSync('./.mongodb-memory-server-uri')) {
@@ -23,10 +38,29 @@ if (fs.existsSync('./.mongodb-memory-server-uri')) {
   console.log('Usando MongoDB Memory Server URI desde archivo:', mongodbUri);
 }
 
-// Rutas de la API
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Servidor funcionando correctamente' });
-});
+// Configurar opciones de conexión de MongoDB
+const mongooseOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+};
+
+// Función para conectar a MongoDB
+const connectToMongoDB = async () => {
+  try {
+    console.log('Intentando conectar a MongoDB...');
+    await mongoose.connect(mongodbUri, mongooseOptions);
+    console.log('Conexión exitosa a MongoDB');
+  } catch (error) {
+    console.error('Error al conectar a MongoDB:', error.message);
+    console.log('El servidor seguirá funcionando sin conexión a MongoDB');
+    console.log('Para solucionar esto:');
+    console.log('1. Asegúrate de que MongoDB esté instalado y ejecutándose');
+    console.log('2. Verifica que la URI de conexión sea correcta en el archivo .env');
+    console.log('3. Si estás usando MongoDB Atlas, verifica que la IP esté permitida en la configuración de red');
+  }
+};
 
 // Crear directorio public si no existe
 if (!fs.existsSync(path.join(__dirname, 'public'))) {
@@ -156,23 +190,11 @@ if (!fs.existsSync(path.join(__dirname, 'public'))) {
   console.log('Archivo index.html creado en el directorio public');
 }
 
-// Iniciar el servidor sin esperar a MongoDB
+// Iniciar el servidor
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor iniciado en http://0.0.0.0:${PORT}`);
-  
-  // Intentar conectar a MongoDB después de iniciar el servidor
-  mongoose.connect(mongodbUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log('Conexión exitosa a MongoDB');
-  })
-  .catch(err => {
-    console.error('Error al conectar a MongoDB:', err.message);
-    console.log('El servidor sigue funcionando sin conexión a MongoDB');
-  });
+  connectToMongoDB();
 });
 
 module.exports = app;

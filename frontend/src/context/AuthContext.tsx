@@ -32,18 +32,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('AuthProvider: Checking authentication...');
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('AuthProvider: Found token in localStorage:', !!token);
+      
       if (token) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        console.log('AuthProvider: Making request to /api/auth/me');
         const response = await axios.get<User>('/api/auth/me');
+        console.log('AuthProvider: User data received:', response.data);
         setUser(response.data);
       }
     } catch (error) {
+      console.error('AuthProvider: Error checking auth:', error);
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/Dashboard.css';
@@ -50,6 +50,7 @@ interface AuthContextType {
 }
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { user, isAuthenticated, loading } = useContext(AuthContext) as AuthContextType;
   const [courses, setCourses] = useState<Course[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
@@ -59,18 +60,35 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('Auth State:', { user, isAuthenticated, loading });
+    
+    // Redirect to login if not authenticated
+    if (!loading && !isAuthenticated) {
+      console.log('Not authenticated, redirecting to login');
+      navigate('/login');
+      return;
+    }
+
     const fetchData = async () => {
-      if (!isAuthenticated || loading) return;
+      if (!isAuthenticated || loading) {
+        console.log('Not authenticated or still loading auth');
+        return;
+      }
 
       try {
         setIsLoading(true);
+        console.log('Fetching courses...');
         
         // Fetch courses
-        const coursesRes = await axios.get<Course[]>('/courses');
+        const coursesRes = await axios.get<Course[]>('/api/courses');
+        console.log('Courses response:', coursesRes.data);
         setCourses(coursesRes.data);
         
         // Fetch user's subscription
-        const subscriptionRes = await axios.get<Subscription[]>(`/subscriptions/user/${user?.id}`);
+        console.log('Fetching subscription for user:', user?.id);
+        const subscriptionRes = await axios.get<Subscription[]>(`/api/subscriptions/user/${user?.id}`);
+        console.log('Subscription response:', subscriptionRes.data);
+        
         if (subscriptionRes.data.length > 0) {
           setSubscription(subscriptionRes.data[0]);
           
@@ -79,28 +97,29 @@ const Dashboard: React.FC = () => {
           const course = coursesRes.data.find(c => c.level === courseLevel);
           
           if (course) {
-            const courseRes = await axios.get<Course>(`/courses/${course._id}`);
+            console.log('Fetching course modules for course:', course._id);
+            const courseRes = await axios.get<Course>(`/api/courses/${course._id}`);
+            console.log('Course modules response:', courseRes.data.modules);
             setModules(courseRes.data.modules);
           }
           
           // Fetch user's progress
-          const progressRes = await axios.get<Progress[]>(`/progress/user/${user?.id}`);
+          console.log('Fetching progress for user:', user?.id);
+          const progressRes = await axios.get<Progress[]>(`/api/progress/user/${user?.id}`);
+          console.log('Progress response:', progressRes.data);
           setProgress(progressRes.data);
         }
         
         setIsLoading(false);
-      } catch (err) {
-        if (axios.isAxiosError(err)) {
-          setError(err.response?.data?.message || 'Error al cargar los datos');
-        } else {
-          setError('Error al cargar los datos');
-        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setError('Error al cargar los datos');
         setIsLoading(false);
       }
     };
     
     fetchData();
-  }, [isAuthenticated, loading, user]);
+  }, [isAuthenticated, loading, user, navigate]);
 
   const calculateOverallProgress = (): number => {
     if (!progress || !modules || modules.length === 0) return 0;
