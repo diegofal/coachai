@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -55,18 +55,20 @@
     "react-resizable-panels": "^2.1.7",
     "react-router-dom": "^7.5.0",
     "recharts": "^2.12.4",
+    "rollup": "^3.29.4",
     "sonner": "^1.7.2",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
+    "vite": "^4.5.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
-    "@types/node": "^22.10.7",
+    "@types/node": "^20.11.30",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^4.4.0",
     "autoprefixer": "10.4.20",
     "eslint": "^9.15.0",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -74,8 +76,7 @@
     "globals": "^15.12.0",
     "postcss": "8.4.49",
     "tailwindcss": "v3.4.16",
-    "typescript": "~5.6.2",
-    "typescript-eslint": "^8.15.0",
-    "vite": "^6.0.1"
+    "typescript": "^5.2.2",
+    "typescript-eslint": "^8.15.0"
   }
 }
